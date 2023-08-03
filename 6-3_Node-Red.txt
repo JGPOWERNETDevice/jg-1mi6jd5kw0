@@ -1,0 +1,285 @@
+[
+    {
+        "id": "fd9ab99f115a03c2",
+        "type": "tab",
+        "label": "Manual",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "dd726ada730d1445",
+        "type": "mqtt in",
+        "z": "fd9ab99f115a03c2",
+        "name": "MQTT Broker",
+        "topic": "MQTT_Pub",
+        "qos": "2",
+        "datatype": "utf8",
+        "broker": "0c02a396eb34a796",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 150,
+        "y": 380,
+        "wires": [
+            [
+                "eaa8aa679814310b"
+            ]
+        ]
+    },
+    {
+        "id": "f78479b53af065bf",
+        "type": "debug",
+        "z": "fd9ab99f115a03c2",
+        "name": "Debug 2",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 600,
+        "y": 500,
+        "wires": []
+    },
+    {
+        "id": "07e1a911c09f1eaa",
+        "type": "change",
+        "z": "fd9ab99f115a03c2",
+        "name": "Generating Data",
+        "rules": [
+            {
+                "t": "set",
+                "p": "Temperature",
+                "pt": "global",
+                "to": "50*$random()",
+                "tot": "jsonata"
+            },
+            {
+                "t": "set",
+                "p": "Density",
+                "pt": "global",
+                "to": "1000*$random()",
+                "tot": "jsonata"
+            },
+            {
+                "t": "set",
+                "p": "timestamp",
+                "pt": "global",
+                "to": "",
+                "tot": "date"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 380,
+        "y": 160,
+        "wires": [
+            [
+                "8b549d2cf6cd053b"
+            ]
+        ]
+    },
+    {
+        "id": "bc07510aed7f4bb2",
+        "type": "inject",
+        "z": "fd9ab99f115a03c2",
+        "name": "Start InfluxDB",
+        "props": [],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 150,
+        "y": 160,
+        "wires": [
+            [
+                "07e1a911c09f1eaa"
+            ]
+        ]
+    },
+    {
+        "id": "c91bbe75c981debb",
+        "type": "debug",
+        "z": "fd9ab99f115a03c2",
+        "name": "Debug 1",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 800,
+        "y": 240,
+        "wires": []
+    },
+    {
+        "id": "8b549d2cf6cd053b",
+        "type": "function",
+        "z": "fd9ab99f115a03c2",
+        "name": "function",
+        "func": "msg.topic=\"InfluxData\"\nvar Dens=global.get('Density')\nvar Temp=global.get('Temperature')\nvar timestamp=global.get('timestamp')\nmsg.payload= {\n    \"timestamp\" : timestamp,\n    \"Temperature\" : Temp,\n    \"Density\" : Dens\n}\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 600,
+        "y": 160,
+        "wires": [
+            [
+                "c91bbe75c981debb",
+                "1a975247dca168f3"
+            ]
+        ]
+    },
+    {
+        "id": "c006cc845449159d",
+        "type": "comment",
+        "z": "fd9ab99f115a03c2",
+        "name": "TEST",
+        "info": "",
+        "x": 130,
+        "y": 100,
+        "wires": []
+    },
+    {
+        "id": "26f1ab11a3e54dbe",
+        "type": "comment",
+        "z": "fd9ab99f115a03c2",
+        "name": "MQTT",
+        "info": "",
+        "x": 130,
+        "y": 320,
+        "wires": []
+    },
+    {
+        "id": "eaa8aa679814310b",
+        "type": "function",
+        "z": "fd9ab99f115a03c2",
+        "name": "function",
+        "func": "var msg1 = {};\nvar msg2 = {};\n\nmsg1.topic = \"InfluxData\"\nmsg2.topic = \"InfluxData\"\n\nvar timestamp = global.get('timestamp')\n\nvar array = msg.payload.split(','),\n    Temp_s = array[0], Humi_s = array[1];\n\nvar Temp_f = parseFloat(Temp_s);\nvar Humi_f = parseFloat(Humi_s);\n\nmsg1.payload = {\n    \"Temperature\": Temp_f\n}\n\nmsg2.payload = {\n    \"Humidity\": Humi_f\n}\n\nreturn [msg1,msg2];",
+        "outputs": 2,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 360,
+        "y": 380,
+        "wires": [
+            [
+                "f78479b53af065bf",
+                "33bd32fd86bb30fe"
+            ],
+            [
+                "f78479b53af065bf",
+                "ed89f1d891f00405"
+            ]
+        ]
+    },
+    {
+        "id": "33bd32fd86bb30fe",
+        "type": "influxdb out",
+        "z": "fd9ab99f115a03c2",
+        "influxdb": "3f53a5ff84e1ebbe",
+        "name": "",
+        "measurement": "",
+        "precision": "",
+        "retentionPolicy": "",
+        "database": "database",
+        "precisionV18FluxV20": "ms",
+        "retentionPolicyV18Flux": "",
+        "org": "organisation",
+        "bucket": "bucket",
+        "x": 630,
+        "y": 380,
+        "wires": []
+    },
+    {
+        "id": "ed89f1d891f00405",
+        "type": "influxdb out",
+        "z": "fd9ab99f115a03c2",
+        "influxdb": "3f53a5ff84e1ebbe",
+        "name": "",
+        "measurement": "",
+        "precision": "",
+        "retentionPolicy": "",
+        "database": "database",
+        "precisionV18FluxV20": "ms",
+        "retentionPolicyV18Flux": "",
+        "org": "organisation",
+        "bucket": "bucket",
+        "x": 630,
+        "y": 420,
+        "wires": []
+    },
+    {
+        "id": "1a975247dca168f3",
+        "type": "influxdb out",
+        "z": "fd9ab99f115a03c2",
+        "influxdb": "3f53a5ff84e1ebbe",
+        "name": "",
+        "measurement": "",
+        "precision": "",
+        "retentionPolicy": "",
+        "database": "database",
+        "precisionV18FluxV20": "ms",
+        "retentionPolicyV18Flux": "",
+        "org": "organisation",
+        "bucket": "bucket",
+        "x": 830,
+        "y": 160,
+        "wires": []
+    },
+    {
+        "id": "0c02a396eb34a796",
+        "type": "mqtt-broker",
+        "name": "AWS",
+        "broker": "mqtt://localhost:1883",
+        "port": "1883",
+        "clientid": "",
+        "autoConnect": true,
+        "usetls": false,
+        "protocolVersion": "4",
+        "keepalive": "60",
+        "cleansession": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closeQos": "0",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willPayload": "",
+        "willMsg": {},
+        "userProps": "",
+        "sessionExpiry": "",
+        "credentials": {}
+    },
+    {
+        "id": "3f53a5ff84e1ebbe",
+        "type": "influxdb",
+        "hostname": "127.0.0.1",
+        "port": "8086",
+        "protocol": "http",
+        "database": "database",
+        "name": "InfluxDB 2.0",
+        "usetls": false,
+        "tls": "",
+        "influxdbVersion": "2.0",
+        "url": "http://localhost:8086",
+        "rejectUnauthorized": false
+    }
+]
